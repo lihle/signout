@@ -1,0 +1,58 @@
+<!--
+This is to remember what the struct that gets passed to template looks like.
+type Page struct {
+	Title string
+	Body  template.HTML //string
+	Error template.HTML //string
+	Form  Form
+}
+ -->
+<html>
+
+<head>
+    <title>{{.Title}}</title>
+    <link rel="stylesheet" href="/static/css/style.css" />
+
+    <!-- Awesomplete autocomplete -->
+    <link rel="stylesheet" href="/static/js/awesomplete/awesomplete.css" />
+    <script src="/static/js/awesomplete/awesomplete.min.js"></script>
+    <script src="/static/js/autocomplete.js"></script>
+
+    <!--  jQuery nonsense -->
+    <script src="/static/js/jquery-3.1.0.min.js"></script>
+
+    <!--  Table sorting -->
+    <script type="text/javascript" src="/static/js/jquery.tablesorter.min.js"></script>
+
+    <script src="/static/js/queries.js"></script>
+
+</head>
+
+<body>
+    <!--<a href="/home" class="right button">&#11121; Home</a>-->
+    <a onclick="window.history.back()" class="left button">&#11104; Back</a>
+    <h1>{{.Title}}</h1>
+    <div class="wrapper">
+
+        {{if .Body}}
+        <div class="main-content">
+            {{.Body}} {{if .Error}}
+            <div class="err">
+                {{.Error}}
+            </div>
+            {{end}}
+        </div>
+        {{end}} {{if .Form.Body }}
+        <form action="{{ .Form.Action }}" method="{{ .Form.Method }}" enctype="{{ .Form.Enc }}">
+            {{ .Form.Body }}
+            <br/><br/>
+            <input type="submit" name="submit" value="Submit" />
+        </form>
+        {{end}}
+
+    </div>
+    <!-- wrapper -->
+    <br/><br/>
+</body>
+
+</html>
