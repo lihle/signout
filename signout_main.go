@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"signout/handler"
 	"signout/storage"
 
 	"github.com/gorilla/mux"
@@ -20,6 +21,11 @@ func main() {
 	}
 
 	r := mux.NewRouter()
+
+	//Pages
+	r.HandleFunc("/", handler.ViewHomepage)
+	r.HandleFunc("/signout_device", handler.ViewSignoutpage)
+	r.HandleFunc("/add_person", handler.ViewAddPerson)
 
 	//Static files
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))

@@ -1,0 +1,520 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: sans-serif;
+    margin: 24px auto;
+    max-width: 1200px;
+    font-size: 14px;
+    line-height: 1.3;
+    color: rgb(0, 0, 0);
+    background-color: rgb(132, 240, 248);
+}
+
+h1 {
+    font-size: 40px;
+    font-family: serif;
+    font-weight: 200;
+    display: block;
+    text-transform: uppercase;
+    text-align: center;
+    margin: 24px auto;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #333;
+    font-style: italic;
+    text-shadow: 2px 2px rgb(255, 181, 22);
+    
+}
+
+h2 {
+    text-align: left;
+    border-bottom: 1px dashed;
+    border-color: #666;
+    margin-left: -20px;
+    margin-right: -20px;
+    font-variant: small-caps;
+    font-style: italic;
+    text-shadow: 1px 1px 2px red;
+}
+
+a {
+    font-weight: bold;
+    text-decoration: none;
+    display: inline-block;
+    margin: 5px 0;
+}
+
+form {
+    text-align: center;
+    background-color: rgb(0, 255, 106);
+    border-radius: 5px;
+    padding: 20px;
+}
+form label{
+    font-size:18px;
+    font-variant: small-caps;
+    font-style: italic;
+    margin: 0px 0px 0px -120px;
+ }
+ form input {
+    height : 35px;
+    width: 25%;
+ }
+ form select {
+    height : 35px;
+    width: 25%;
+    font-style: italic;
+
+ }
+  
+ 
+
+div.button {
+    text-align: center;
+}
+
+a.button {
+    /*background: #EEE;
+  padding: 5px;
+  border-radius: 5px;
+  border: 1px solid;
+  font-size:15px;
+  color:black;*/
+    display: inline-block;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+a.button:hover {
+    background-color: #CCC;
+}
+
+a.button:visited {
+    color: #333;
+}
+
+a.button.clear {
+    margin: 0px 5px 0;
+    padding: 3px;
+    font-size: 12px;
+}
+
+.left {
+    float: left;
+    margin-right: -100%;
+}
+
+.right {
+    float: right;
+    margin-left: -100%;
+}
+
+.error,
+.success {
+    font-weight: bold;
+}
+
+.error {
+    color: red;
+}
+
+.success {
+    color: green;
+}
+
+input,
+select {
+    min-width: 200px;
+    font-size: 16px;
+}
+
+.awesomplete {
+    padding: 0;
+}
+
+.awesomplete>input {
+    min-width: 300px;
+}
+
+div.awesomplete>ul>li {
+    color: #333;
+    border-bottom: 1px solid;
+    padding: 10px 5px;
+    margin: 0 5px;
+}
+
+div.awesomplete>ul>li:last-child {
+    border-bottom: none;
+}
+
+input[type="checkbox"] {
+    width: 17px;
+    height: 17px;
+    position: relative;
+    top: 4px;
+    padding: 0 4px;
+    min-width: 0;
+}
+
+input[type=submit],
+a.button {
+    font-weight: normal;
+    background-color: #EEE;
+    color: #333;
+    border: 1px solid;
+    font-size: 17px;
+    padding: 5px 70px 8px 70px;
+    border-radius: 50px 10px 50px 10px;
+    margin: 10px 5px;
+    min-width: 0;
+    cursor: pointer;
+    text-shadow: 2px 1px rgb(255, 181, 22);
+    font-style: italic;
+}
+
+input[type=submit]:hover,
+a.button:hover {
+    background-color: #CCC;
+    color: seagreen;
+}
+
+div>label {
+    width: 50%;
+    text-align: right;
+    padding: 0 5px;
+    float: left;
+}
+
+form div {
+    text-align: left;
+    padding: 5px;
+}
+
+.wrapper {
+    /*text-align:center;*/
+    padding: 20px;
+}
+
+.student_info {
+    margin-bottom: 60px;
+}
+
+.student_info div {
+    float: left;
+    margin-left: 240px;
+    margin-right: -100%;
+}
+
+.student_info img {
+    margin-right: 40px;
+    vertical-align: top;
+}
+
+
+/* Attendance view */
+
+.hidden {
+    display: none;
+}
+
+.clickable {
+    cursor: pointer;
+}
+
+.clickable::after {
+    content: "⮷";
+    float: right;
+}
+
+.clickable.collapse::after {
+    content: "⮵";
+}
+
+
+/* Random color for hover =) */
+
+.clickable:hover {
+    color: seagreen;
+}
+
+.attendance td,
+.attendance tr {
+    height: 30px;
+}
+
+.attendance td {
+    border: 1px solid #ccc;
+    white-space: nowrap;
+    padding: 0 3px;
+}
+
+.attendance table {
+    width: 100%;
+    display: inline-block;
+    border-spacing: 0;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.attendance tr:nth-child(even) td {
+    background-color: #eee;
+}
+
+.attendance div {
+    overflow-x: scroll;
+    padding: 0 0 10px;
+    display: inline-block;
+}
+
+.attendance .names {
+    width: 20%;
+}
+
+.attendance .dates {
+    width: 80%;
+    border-left: 1px solid #333;
+}
+
+.attendance .dates td {
+    width: 30px;
+    vertical-align: top;
+}
+
+.attendance .dates tr:last-child td {
+    vertical-align: middle;
+    text-align: center;
+}
+
+.attendance .dates th {
+    border: 1px solid #ccc;
+    width: 30px;
+}
+
+.attendance .add_new {
+    display: block;
+    font-size: 24px;
+    width: 30px;
+    margin: 0;
+}
+
+
+/*Table sorter*/
+
+.tablesorter {
+    width: 100%;
+    border-spacing: 0;
+    border-collapse: collapse;
+    margin: 20px 0 30px;
+    font-size: 13px;
+}
+
+.tablesorter th {
+    cursor: pointer;
+    color: #fff;
+    background-color: #333;
+    border: 1px solid #fff;
+    padding: 15px;
+}
+
+.tablesorter td {
+    border: 1px solid #ccc;
+    padding: 5px;
+    font-size: 18px;
+    text-align: center;
+}
+
+.tablesorter tr:nth-child(even) td {
+    background-color: rgb(248, 240, 218);
+}
+
+.tablesorter tr:hover {background-color: rgb(123, 185, 8);}
+
+.tablesorter a {
+    margin: 0;
+    font-weight: normal;  
+}
+
+
+/*Compare duplicates*/
+
+div.compare_duplicates {
+    border-bottom: 1px solid;
+    padding-bottom: 12px;
+    margin-bottom: 12px;
+    text-align: center;
+    display: table;
+    width: 100%;
+}
+
+.compare_duplicates .half {
+    width: 50%;
+}
+
+.compare_duplicates div {
+    /*height:160px;*/
+    display: inline-block;
+    display: table-cell;
+}
+
+.compare_duplicates>.half:first-child {
+    text-align: right;
+    border-right: 1px solid;
+}
+
+.compare_duplicates div.button {
+    display: inline;
+}
+
+
+/* Custom checkboxes*/
+
+div.custombox {
+    display: inline-block;
+    width: 32px;
+    height: 32px;
+    padding: 0!important;
+    cursor: pointer;
+    background-color: transparent;
+    background-image: url('/static/img/boxes/unchecked.png')
+}
+
+.custombox.checked {
+    background-image: url('/static/img/boxes/checked.png')
+}
+
+.custombox.green {
+    background-image: url('/static/img/boxes/unchecked-green.png')
+}
+
+.custombox.checked.green {
+    background-image: url('/static/img/boxes/checked-green.png')
+}
+
+.custombox.blue {
+    background-image: url('/static/img/boxes/unchecked-blue.png')
+}
+
+.custombox.checked.blue {
+    background-image: url('/static/img/boxes/checked-blue.png')
+}
+
+.custombox.yellow {
+    background-image: url('/static/img/boxes/unchecked-yellow.png')
+}
+
+.custombox.checked.yellow {
+    background-image: url('/static/img/boxes/checked-yellow.png')
+}
+
+.custombox.red {
+    background-image: url('/static/img/boxes/unchecked-red.png')
+}
+
+.custombox.checked.red {
+    background-image: url('/static/img/boxes/checked-red.png')
+}
+
+
+/*Program Overview*/
+
+.main-content div.overview {
+    text-align: center;
+}
+
+.main-content .meter {
+    text-align: center;
+}
+
+.meter div {
+    display: inline-block;
+    text-align: center;
+}
+
+.meter .red,
+.button.red,
+.red {
+    background: lightcoral;
+}
+
+.meter .green,
+.button.green,
+.green {
+    background: lightgreen;
+}
+
+.meter .yellow,
+.button.yellow,
+.yellow {
+    background: #ffff30;
+}
+
+
+/*View classes*/
+
+.classView {
+    margin: 24px auto;
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+
+.classView th {
+    font-weight: bold;
+    padding: 45px;
+    background-color: rgb(136, 199, 18);
+    border-bottom: 1px solid;
+    font-style: italic;
+}
+
+.classView tr:nth-child(even) td {
+    background-color: rgb(243, 211, 238);
+}
+.classView tr:hover {background-color: rgb(183, 224, 107);}
+
+
+/*Cells*/
+
+.classView td {
+    border-bottom: 1px solid red;
+    text-align: center;
+    text-transform: capitalize;
+    padding: 0px 0px 0px 20px;
+}
+
+.classView td:first-child {
+    text-align: left;
+}
+
+/*button*/
+.classView .button {
+    padding: 0px 3px;
+    margin: 0;
+    display: inline-block;
+}
+
+
+/*------------PRINTING-----------*/
+
+@media print {
+    body {
+        font-size: 12px;
+    }
+    a,
+    a:visited {
+        color: black!important;
+        text-decoration: none;
+    }
+    h2 {
+        page-break-before: always;
+    }
+    h2:first-child {
+        page-break-before: auto;
+    }
+    a.button,
+    input["submit"] {
+        display: none!important;
+    }
+}
