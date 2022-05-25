@@ -130,7 +130,7 @@ func InsertDeviceLoan(typeid, personid, label string) error {
 
 //UpdateTypeQuantity : func -> updates device type quantity and returns an error if it exists
 func UpdateTypeQuantity(quantity int, deviceid string) error {
-	_, err := db.Exec("UPDATE device_type set quantity = ? WHERE device_type_id = ?", quantity, deviceid)
+	_, err := db.Exec("UPDATE device_type SET quantity = ? WHERE device_type_id = ?", quantity, deviceid)
 	return err
 }
 
@@ -154,4 +154,97 @@ func GetLoanedOut(programID string) (loans []types.Loan, err error) {
 		loans = append(loans, loan)
 	}
 	return
+}
+
+//AccessApproval : func -> returns 1 for correct user details & 0 for wrong details
+func AccessApproval(username, password string) (id int, err error) {
+	raw := db.QueryRow("SELECT COUNT(*) FROM admin_login WHERE username LIKE ? AND password LIKE ?", username, password)
+	err = raw.Scan(&id)
+	return
+}
+
+//GetAdminUser : func -> returns Admin data from username & password
+func GetAdminUser(username, password string) (user types.Admin, err error) {
+	raw := db.QueryRow("SELECT al.person_id, p.full_name, p.program_id, pr.program_name , "+
+		"al.username, al.password FROM admin_login al LEFT JOIN person p ON al.person_id = p.person_id  "+
+		"LEFT JOIN program pr on pr.program_id = p.program_id WHERE al.username LIKE ? AND password LIKE ?",
+		username, password)
+	err = raw.Scan(&user.PersonID, &user.Fullname, &user.ProgramID, &user.ProgramName, &user.Username, &user.Password)
+	return
+}
+
+//InsertLogin : func -> enters a new login to histroy
+func InsertLogin(personid, fullname, programid, programname string) (string, error) {
+	raw, err := db.Exec("INSERT INTO login_history SET person_id = ?, fullname = ?, program_id = ?, program_name = ?, "+
+		"logged_in = NOW() ", personid, fullname, programid, programname)
+	if err != nil {
+		return "", err
+	}
+	id, err := raw.LastInsertId()
+	return fmt.Sprint(id), err
+}
+
+//UpdateLogoutCols : func -> updates login history when one logs in without logging out first
+func UpdateLogoutCols(personid string) error {
+	_, err := db.Exec("UPDATE login_history SET logged_out = NOW() WHERE person_id = ? AND logged_out IS NULL ", personid)
+	return err
+}
+
+//UpdateLogout : func -> updates history when logging out
+func UpdateLogout(historyid string) error {
+	_, err := db.Exec("UPDATE login_history SET logged_out = NOW() WHERE login_history_id = ?", historyid)
+	return err
+}
+
+//GetAllLoans : func -> returns all devices loaned out as loans
+func GetAllLoans() (loans []types.Loan, err error) {
+	raws, err := db.Query("SELECT dl.device_loan_id, dt.device_type_name, dl.device_loan_label, " +
+		"dl.device_loan_timestamp, p.full_name FROM device_loan dl LEFT JOIN device_type dt ON " +
+		"dl.device_type_id = dt.device_type_id LEFT JOIN person p ON dl.person_id = p.person_id " +
+		"WHERE dl.device_loan_returntime IS NULL ORDER BY device_loan_timestamp DESC")
+	if err != nil {
+		return
+	}
+	defer raws.Close()
+
+	for raws.Next() {
+		var loan types.Loan
+		err = raws.Scan(&loan.LoanID, &loan.Device.DeviceName, &loan.LoanLabel, &loan.LoanTimeStamp, &loan.Person.Fullname)
+		if err != nil {
+			return
+		}
+		loans = append(loans, loan)
+	}
+	return
+}
+
+//GetDeviceLoan : func -> returns device loan details
+func GetDeviceLoan(loanid string) (loan types.Loan, err error) {
+	raw := db.QueryRow("SELECT dl.device_loan_id, dt.device_type_name, dl.device_loan_label, "+
+		"dl.device_loan_timestamp, p.full_name FROM device_loan dl LEFT JOIN device_type dt ON "+
+		"dl.device_type_id = dt.device_type_id LEFT JOIN person p ON dl.person_id = p.person_id "+
+		"WHERE dl.device_loan_id = ?", loanid)
+	err = raw.Scan(&loan.LoanID, &loan.Device.DeviceName, &loan.LoanLabel, &loan.LoanTimeStamp, &loan.Person.Fullname)
+	return
+}
+
+//GetLoanDeviceType : func -> returns device type from a loan ID
+func GetLoanDeviceType(loanid string) (device types.Device, err error) {
+	raw := db.QueryRow("SELECT dt.* FROM device_loan dl LEFT JOIN device_type dt ON "+
+		"dl.device_type_id = dt.device_type_id WHERE dl.device_loan_id = ?", loanid)
+	err = raw.Scan(&device.DeviceID, &device.DeviceName, &device.ProgramID, &device.Quantity)
+	return
+}
+
+//UpdateDeviceQuantity : func -> updates quantity when signing device in
+func UpdateDeviceQuantity(quantity, deviceid string) error {
+	_, err := db.Exec("UPDATE device_type SET quantity = ? WHERE device_type_id = ?", quantity, deviceid)
+	return err
+}
+
+//UpdateSignin : func -> updates loan when signning in loaned out device
+func UpdateSignin(userid, comment, loanid string) error {
+	_, err := db.Exec("UPDATE device_loan SET device_loan_returntime = NOW(), return_user_id = ?, "+
+		"device_loan_comment = ? WHERE device_loan_id = ?", userid, comment, loanid)
+	return err
 }

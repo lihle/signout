@@ -115,3 +115,88 @@ func ViewAddPerson(w http.ResponseWriter, r *http.Request) {
 
 	view(w, multiPartForm("Add yourself", body))
 }
+
+//ViewAdminlogin : func -> gets the login page
+func ViewAdminlogin(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "login/index.html")
+}
+
+//ViewAdminUser : func -> view page for approved user
+func ViewAdminUser(w http.ResponseWriter, r *http.Request) {
+	var body string
+	u := r.FormValue("u") //Login History id so is easy to update history table
+	loans, err := storage.GetAllLoans()
+	if err != nil {
+		return
+	}
+	t := table.New("#No:", "Device (type of the device)", "Label (label on device)", "Date (signed out at)",
+		"Person (signed out by)")
+
+	body += html.Div(html.A("/admin_logout?u="+u, "(log-out to home page)"), "right")
+	body += html.Br()
+	body += html.H2("Basic options")
+	body += html.Button("/admin_user/devices", "All options related: All Devices")
+	body += html.Br()
+	body += html.Button("/admin_user/persons", "All options related: Persons")
+	body += html.Br()
+	body += html.H2("Sign-in devices signed out")
+	//
+	for x, loan := range loans {
+		link := "/admin_user/device_loan?u=" + u + "&loanid=" + loan.LoanID
+		t.AddRow(x+1, loan.Device.DeviceName, loan.LoanLabel, loan.LoanTimeStamp, html.A(link, loan.Person.Fullname))
+	}
+	body += html.Div(t.HTML("tablesorter"))
+
+	view(w, newPage("Admin User", body))
+}
+
+//AdminLogout : func -> updates the login history table and log user out
+func AdminLogout(w http.ResponseWriter, r *http.Request) {
+	u := r.FormValue("u")
+	err := storage.UpdateLogout(u)
+	if err == nil {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+	}
+}
+
+//ViewAdminLoanSignin : func -> shows device loan details and allows one to sign it in
+func ViewAdminLoanSignin(w http.ResponseWriter, r *http.Request) {
+	var body string
+	loanid := r.FormValue("loanid")
+	u := r.FormValue("u")
+	loan, err := storage.GetDeviceLoan(loanid)
+	if err != nil {
+		return
+	}
+	//
+	body += html.Div(html.A("/admin_user?u="+u, "(Go-to Admin home page)"), "right")
+	body += html.H2("Loan details:")
+	body += html.Br()
+	body += html.Div(html.B("Device type (what is the device?) : ")+loan.Device.DeviceName, "overview")
+	body += html.Div(html.B("Device label (written on the device) : ")+loan.LoanLabel, "overview")
+	body += html.Div(html.B("Timestamp (when was it signed out?) : ")+loan.LoanTimeStamp, "overview")
+	body += html.Div(html.B("Person (who loaned it out?) : ")+loan.Person.Fullname, "overview")
+	body += html.LabelTextArea("Device condition : ", "comment")
+	body += html.Br()
+	body += html.H2("Submit to sign it in")
+
+	if set(r.FormValue("submit")) {
+		comment := "NB: " + r.FormValue("comment")
+		err := storage.UpdateSignin(u, comment, loan.LoanID)
+		if err != nil {
+			return
+		}
+
+		device, err := storage.GetLoanDeviceType(loanid)
+		if err == nil {
+			device.Quantity = device.Quantity + 1
+			err = storage.UpdateTypeQuantity(device.Quantity, device.DeviceID)
+			if err != nil {
+				return
+			}
+			http.Redirect(w, r, "/admin_user?u="+u, http.StatusSeeOther)
+		}
+	}
+
+	view(w, multiPartForm("Sign it in", body))
+}

@@ -26,6 +26,13 @@ func main() {
 	r.HandleFunc("/", handler.ViewHomepage)
 	r.HandleFunc("/signout_device", handler.ViewSignoutpage)
 	r.HandleFunc("/add_person", handler.ViewAddPerson)
+	r.HandleFunc("/admin_login", handler.ViewAdminlogin)
+	r.HandleFunc("/admin_verify", handler.AdminLoginVerify)
+	r.HandleFunc("/admin_user", handler.ViewAdminUser)
+	r.HandleFunc("/admin_logout", handler.AdminLogout)
+
+	//
+	r.HandleFunc("/admin_user/device_loan", handler.ViewAdminLoanSignin)
 
 	//Static files
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
