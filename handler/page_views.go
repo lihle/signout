@@ -6,6 +6,7 @@ import (
 	"signout/html/forms"
 	"signout/html/table"
 	"signout/storage"
+	"strconv"
 )
 
 //ViewHomepage : func -> home page of the system
@@ -135,9 +136,9 @@ func ViewAdminUser(w http.ResponseWriter, r *http.Request) {
 	body += html.Div(html.A("/admin_logout?u="+u, "(log-out to home page)"), "right")
 	body += html.Br()
 	body += html.H2("Basic options")
-	body += html.Button("/admin_user/devices", "All options related: All Devices")
+	body += html.Button("/admin_user/devices?u="+u, "All options related: All Devices")
 	body += html.Br()
-	body += html.Button("/admin_user/persons", "All options related: Persons")
+	body += html.Button("/admin_user/persons?u="+u, "All options related: Persons")
 	body += html.Br()
 	body += html.H2("Sign-in devices signed out")
 	//
@@ -199,4 +200,197 @@ func ViewAdminLoanSignin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	view(w, multiPartForm("Sign it in", body))
+}
+
+//ViewAllDevices : func -> views all options related to devices
+func ViewAllDevices(w http.ResponseWriter, r *http.Request) {
+	var body string
+	u := r.FormValue("u")
+	programs, err := storage.GetAllPrograms()
+	if err != nil {
+		return
+	}
+
+	body += html.Div(html.A("/admin_user?u="+u, "(Go-to Admin home page)"), "right")
+	body += html.H2("Basic options")
+	body += html.Button("/admin_user/add_device_type?u="+u, "Add new device type")
+	body += html.Button("/admin_user/add_new_program?u="+u, "Add new program")
+	body += html.H2("View or Edit devices per program")
+	for _, program := range programs {
+		body += html.H3(html.A("/admin_user/extra/program?u="+u+"&pid="+program.ProgramID, program.ProgramName), "clickable")
+		devices, _ := storage.GetAllDevices(program.ProgramID)
+		t := table.New("#No:", "device (What type of device?)", "Quantity (How many devices)", "Loaned out")
+		for x, device := range devices {
+			count, err := storage.CountSignedout(device.DeviceID)
+			if err != nil {
+				return
+			}
+			t.AddRow(x+1, html.A("/admin_user/loanout?u="+u+"&dtype="+device.DeviceID, device.DeviceName),
+				device.Quantity, count)
+		}
+		body += html.Div(t.HTML("tablesorter"), "hidden")
+	}
+
+	view(w, newPage("All - Devices", body))
+}
+
+//ViewAdminLoanout : func -> for admin to loan out devices
+func ViewAdminLoanout(w http.ResponseWriter, r *http.Request) {
+	var body string
+	u := r.FormValue("u")
+	dtypeid := r.FormValue("dtype")
+	device, _ := storage.GetDevice(dtypeid)
+	programs := ProgramList()
+	//
+	f, err := forms.StudentAutocomplete()
+	if err != nil {
+		return
+	}
+
+	body += html.Div(html.A("/admin_user/devices?u="+u, "(Go back)"), "right")
+	body += html.H2("Type name below to search if exist")
+	body += f
+	body += html.H2("If the user doesn't exist, type in first & last name & choose relavent relation")
+	body += html.Div(html.LabelString("First-name : ", "name"))
+	body += html.Div(html.LabelString("Last-name : ", "surname"))
+	body += html.Div(html.LabelSelect("Relation to Axium : ", "relation", programs, programs))
+	body += html.H2("To the above mentioned, you signing out")
+	body += html.Div(html.B("Device type : "+device.DeviceName), "overview")
+	body += html.Div(html.LabelString("Label on device : ", "label"), "overview")
+	body += html.H2("Submit to complete sign out")
+
+	if set(r.FormValue("submit")) {
+		device.Quantity = device.Quantity - 1
+
+		if set(r.FormValue("student")) {
+			err = storage.InsertDeviceLoan(device.DeviceID, r.FormValue("student"), r.FormValue("label"))
+			if err != nil {
+				return
+			}
+
+		} else if set(r.FormValue("name"), r.FormValue("surname"), r.FormValue("relation")) {
+			fullname := r.FormValue("name") + " " + r.FormValue("surname")
+			pid, _ := storage.GetPogramID(r.FormValue("relation"))
+			id, _ := storage.InsertPerson(fullname, pid)
+
+			err = storage.InsertDeviceLoan(device.DeviceID, id, r.FormValue("label"))
+			if err != nil {
+				return
+			}
+		}
+		err = storage.UpdateDeviceQuantity(strconv.Itoa(device.Quantity), device.DeviceID)
+		if err != nil {
+			return
+		}
+		http.Redirect(w, r, "/admin_user/devices?u="+u, http.StatusSeeOther)
+
+	}
+
+	view(w, multiPartForm("Sign out device", body))
+}
+
+//EditProgramDetails : func -> view showing all program data and can be edited
+func EditProgramDetails(w http.ResponseWriter, r *http.Request) {
+	var body string
+	u := r.FormValue("u")
+	pid := r.FormValue("pid")
+	program, _ := storage.GetProgram(pid)
+	devices, _ := storage.GetAllDevices(program.ProgramID)
+
+	body += html.Div(html.A("/admin_user/devices?u="+u, "(Go back)"), "right")
+	body += html.H2("Program details")
+	body += html.Div(html.LabelString("Program name : ", "program", program.ProgramName))
+	body += html.Div(html.LabelTextArea("Purpose (brief definition about program) : ", "purpose", program.ProgramDefinition))
+	body += html.H2("Devices associate with " + program.ProgramName + " program")
+	for _, device := range devices {
+		count, _ := storage.CountSignedout(device.DeviceID)
+		available := device.Quantity + count
+		quan := strconv.Itoa(available)
+		body += html.Div(html.LabelString(html.B(device.DeviceName+" (current quantity) : "), "current", quan))
+		body += html.Div(html.LabelString(html.B("Add unit(s) (How many units you adding) : "), device.DeviceName, "0"))
+	}
+
+	//
+	if set(r.FormValue("submit")) {
+		program.ProgramName = r.FormValue("program")
+		program.ProgramDefinition = r.FormValue("purpose")
+		err := storage.UpdateProgram(program.ProgramName, program.ProgramDefinition, program.ProgramID)
+		if err != nil {
+			return
+		}
+		for _, d := range devices {
+			//
+			unit, _ := strconv.Atoi(r.FormValue(d.DeviceName))
+			d.Quantity = d.Quantity + unit
+			err := storage.UpdateTypeQuantity(d.Quantity, d.DeviceID)
+			if err != nil {
+				return
+			}
+		}
+		http.Redirect(w, r, "/admin_user/devices?u="+u, http.StatusSeeOther)
+	}
+
+	view(w, multiPartForm("Edit Program Details", body))
+}
+
+//ViewAddNewDevice : func -> for adding a new device type
+func ViewAddNewDevice(w http.ResponseWriter, r *http.Request) {
+	var body string
+	u := r.FormValue("u")
+	programs := ProgramList()
+
+	body += html.Div(html.A("/admin_user/devices?u="+u, "(Go to devices & programs)"), "right")
+	body += html.H2("Device details")
+	body += html.Div(html.LabelString("Device type (What type of device?) : ", "type"))
+	body += html.Div(html.LabelSelect("Program (Which program it belongs to) : ", "program", programs, programs))
+	body += html.Div(html.LabelString("Quantity (How many units?) : ", "quantity"))
+
+	if set(r.FormValue("submit")) {
+		dtype := r.FormValue("type") // devide type
+		program := r.FormValue("program")
+		quantity := r.FormValue("quantity")
+		programid, _ := storage.GetPogramID(program)
+
+		err := storage.InsertDeviceType(dtype, programid, quantity)
+		if err != nil {
+			return
+		}
+		http.Redirect(w, r, "/admin_user/devices?u="+u, http.StatusSeeOther)
+	}
+
+	view(w, multiPartForm("Add new device type", body))
+}
+
+//ViewAddNewProgram : func -> for adding a new program
+func ViewAddNewProgram(w http.ResponseWriter, r *http.Request) {
+	var body string
+	u := r.FormValue("u")
+	//
+	body += html.Div(html.A("/admin_user/devices?u="+u, "(Go to devices & programs)"), "right")
+	body += html.H2("Program details")
+	body += html.Div(html.LabelString("Program (name your program) : ", "program"))
+	body += html.Div(html.LabelTextArea("Description (purpose of the program) : ", "purpose"))
+
+	if set(r.FormValue("submit")) {
+		program := r.FormValue("program")
+		purpose := r.FormValue("purpose")
+		err := storage.InsertProgram(program, purpose)
+		if err != nil {
+			return
+		}
+
+		http.Redirect(w, r, "/admin_user/devices?u="+u, http.StatusSeeOther)
+	}
+
+	view(w, multiPartForm("Add new program", body))
+}
+
+//ViewAllPersons : func -> views all options related to persons
+func ViewAllPersons(w http.ResponseWriter, r *http.Request) {
+	var body string
+	u := r.FormValue("u")
+
+	body += html.Div(html.A("/admin_user?u="+u, "(Go-to Admin home page)"), "right")
+
+	view(w, newPage("All - Persons", body))
 }

@@ -248,3 +248,45 @@ func UpdateSignin(userid, comment, loanid string) error {
 		"device_loan_comment = ? WHERE device_loan_id = ?", userid, comment, loanid)
 	return err
 }
+
+//InsertDeviceType : func -> inserts a new entry for program
+func InsertDeviceType(typename, programid, quantity string) error {
+	_, err := db.Exec("INSERT INTO device_type SET device_type_name = ?, program_id = ?, "+
+		"quantity = ?", typename, programid, quantity)
+	return err
+}
+
+//InsertProgram : func -> insert new entry for new program
+func InsertProgram(name, desc string) error {
+	_, err := db.Exec("INSERT INTO program SET program_name = ?, program_definition = ?", name, desc)
+	return err
+}
+
+//CountSignedout : func -> returns a count of all signed out per device type id
+func CountSignedout(dtypeid string) (count int, err error) {
+	raw := db.QueryRow("SELECT COUNT(*) FROM device_loan dl WHERE dl.device_type_id = ? "+
+		"AND dl.device_loan_returntime IS NULL", dtypeid)
+	err = raw.Scan(&count)
+	return
+}
+
+//GetProgram : func -> returns program details per program ID
+func GetProgram(programid string) (program types.Program, err error) {
+	raw := db.QueryRow("SELECT * FROM program WHERE program_id = ?", programid)
+	err = raw.Scan(&program.ProgramID, &program.ProgramName, &program.ProgramDefinition)
+	return
+}
+
+//UpdateProgram : func -> updates the program date
+func UpdateProgram(name, define, programid string) error {
+	_, err := db.Exec("UPDATE program SET program_name = ?, program_definition = ? "+
+		"WHERE program_id = ?", name, define, programid)
+	return err
+}
+
+//GetDevice : func -> returns device type information per id
+func GetDevice(deviceid string) (device types.Device, err error) {
+	raw := db.QueryRow("SELECT * FROM device_type WHERE device_type_id = ?", deviceid)
+	err = raw.Scan(&device.DeviceID, &device.DeviceName, &device.ProgramID, &device.Quantity)
+	return
+}

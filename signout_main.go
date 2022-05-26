@@ -33,6 +33,12 @@ func main() {
 
 	//
 	r.HandleFunc("/admin_user/device_loan", handler.ViewAdminLoanSignin)
+	r.HandleFunc("/admin_user/persons", handler.ViewAllPersons)
+	r.HandleFunc("/admin_user/devices", handler.ViewAllDevices)
+	r.HandleFunc("/admin_user/add_device_type", handler.ViewAddNewDevice)
+	r.HandleFunc("/admin_user/add_new_program", handler.ViewAddNewProgram)
+	r.HandleFunc("/admin_user/extra/program", handler.EditProgramDetails)
+	r.HandleFunc("/admin_user/loanout", handler.ViewAdminLoanout)
 
 	//Static files
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
