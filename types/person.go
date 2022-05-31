@@ -9,12 +9,10 @@ type Person struct {
 
 //Admin : class
 type Admin struct {
-	PersonID    string
-	Fullname    string
-	ProgramID   string
-	ProgramName string
-	Username    string
-	Password    string
+	Person   Person
+	Program  Program
+	Username string
+	Password string
 }
 
 //AdminHistory : class

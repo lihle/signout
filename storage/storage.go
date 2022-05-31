@@ -20,7 +20,7 @@ func Init() error {
 }
 
 func conn() (*sql.DB, error) {
-	return sql.Open("mysql", "lihle:lihle@(localhost:3306)/signout?charset=utf8")
+	return sql.Open("mysql", "root:Start@123@(10.1.1.2:3306)/signout?charset=utf8")
 }
 
 func valueOrWildcard(in string) string {
@@ -157,26 +157,26 @@ func GetLoanedOut(programID string) (loans []types.Loan, err error) {
 }
 
 //AccessApproval : func -> returns 1 for correct user details & 0 for wrong details
-func AccessApproval(username, password string) (id int, err error) {
-	raw := db.QueryRow("SELECT COUNT(*) FROM admin_login WHERE username LIKE ? AND password LIKE ?", username, password)
-	err = raw.Scan(&id)
+func AccessApproval(username, password string) (loginid string, id int, err error) {
+	raw := db.QueryRow("SELECT person_id , COUNT(*) FROM admin_login WHERE username LIKE ? AND password LIKE ?", username, password)
+	err = raw.Scan(&loginid, &id)
 	return
 }
 
 //GetAdminUser : func -> returns Admin data from username & password
-func GetAdminUser(username, password string) (user types.Admin, err error) {
-	raw := db.QueryRow("SELECT al.person_id, p.full_name, p.program_id, pr.program_name , "+
-		"al.username, al.password FROM admin_login al LEFT JOIN person p ON al.person_id = p.person_id  "+
-		"LEFT JOIN program pr on pr.program_id = p.program_id WHERE al.username LIKE ? AND password LIKE ?",
-		username, password)
-	err = raw.Scan(&user.PersonID, &user.Fullname, &user.ProgramID, &user.ProgramName, &user.Username, &user.Password)
+func GetAdminUser(personid string) (usr types.Admin, err error) {
+	raw := db.QueryRow("SELECT al.person_id, p.full_name, p.program_id, pr.program_name,al.username, al.password "+
+		"FROM admin_login al LEFT JOIN person p ON al.person_id = p.person_id LEFT JOIN program pr on "+
+		"pr.program_id = p.program_id WHERE al.person_id = ?", personid)
+	err = raw.Scan(&usr.Person.PersonID, &usr.Person.Fullname, &usr.Program.ProgramID, &usr.Program.ProgramName,
+		&usr.Username, &usr.Password)
 	return
 }
 
 //InsertLogin : func -> enters a new login to histroy
-func InsertLogin(personid, fullname, programid, programname string) (string, error) {
-	raw, err := db.Exec("INSERT INTO login_history SET person_id = ?, fullname = ?, program_id = ?, program_name = ?, "+
-		"logged_in = NOW() ", personid, fullname, programid, programname)
+func InsertLogin(personid, programid string) (string, error) {
+	raw, err := db.Exec("INSERT INTO login_history SET person_id = ?, program_id = ?, logged_in = NOW()", personid,
+		programid)
 	if err != nil {
 		return "", err
 	}

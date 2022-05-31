@@ -38,16 +38,16 @@ func AdminLoginVerify(w http.ResponseWriter, r *http.Request) {
 	password := r.PostFormValue("password")
 
 	//check returned value
-	access, err := storage.AccessApproval(username, password)
+	loginid, access, err := storage.AccessApproval(username, password)
 	if err == nil {
 		if access == 1 {
-			user, err := storage.GetAdminUser(username, password)
+			user, err := storage.GetAdminUser(loginid)
 			if err == nil {
-				err := storage.UpdateLogoutCols(user.PersonID)
+				err := storage.UpdateLogoutCols(user.Person.PersonID)
 				if err != nil {
 					return
 				}
-				id, err := storage.InsertLogin(user.PersonID, user.Fullname, user.ProgramID, user.ProgramName)
+				id, err := storage.InsertLogin(user.Person.PersonID, user.Program.ProgramID)
 				if err == nil {
 					http.Redirect(w, r, "/admin_user?u="+id, http.StatusSeeOther)
 				}
